@@ -1,18 +1,34 @@
-#!python3
+#!/usr/bin/python3
 
 __author__ = 'Jan Kempeneers'
 
 import paho.mqtt.client as mqtt
-import time, math, json
+import time, math, json, yaml
+
+with open("my_mqtt_module.yml", 'r') as f:
+    try:
+        cfg_dic = yaml.safe_load(f)
+    except yaml.YAMLError as exc:
+        print(exc)
+
+print(cfg_dic["mqtt_publisher"]["time_interval"])
 
 # This is the Publisher
 
-server = "127.0.0.1"
-port = 1883
+server = cfg_dic["mqtt_publisher"]["server"]
+port = cfg_dic["mqtt_publisher"]["port"]
 #topic = "rpi-oven/temperature"
-topic = "v1/devices/me/telemetry"
-username = "IrEKQCfL5fS1v5sJ1QWo"
-password = ""
+topic = cfg_dic["mqtt_publisher"]["topic"]
+username = cfg_dic["mqtt_publisher"]["username"]
+password = cfg_dic["mqtt_publisher"]["password"]
+time_interval = cfg_dic["mqtt_publisher"]["time_interval"]
+
+sine_dataflow_enabled = cfg_dic["sine_dataflow"]["enable"]
+x_axis_steps = cfg_dic["sine_dataflow"]["x_axis_steps"]
+sine_amplitude = cfg_dic["sine_dataflow"]["sine_amplitude"]
+sine_displacement = cfg_dic["sine_dataflow"]["sine_displacement"]
+
+
 
 flag_connected = 0
 
@@ -51,7 +67,7 @@ def publish_mqtt_message(topic, msg_out):
 #       client.loop_forever()
 
 def calculate_sine_datapoint(x_value):
-        sine_datapoint = int(round(math.sin(math.radians(x_value))*100))+100
+        sine_datapoint = int(round(math.sin(math.radians(x_value))*sine_amplitude))+sine_displacement
         return sine_datapoint
 
 
@@ -59,13 +75,15 @@ def run():
     initialize_mqtt_client()
     x_value=0
     while True:
-        # values = {'switch1': switch1}
-        sine_datapoint = calculate_sine_datapoint(x_value)
-        msg = {"temperature": sine_datapoint}
+        if sine_dataflow_enabled == True:
+            sine_datapoint = calculate_sine_datapoint(x_value)
+            msg = {"temperature": sine_datapoint}
+        else:
+            msg = None
         msg_out = json.dumps(msg)
         publish_mqtt_message(topic, msg_out)
         time.sleep(1)
-        x_value += 10
+        x_value += x_axis_steps
     client.disconnect()
 
 def main():
