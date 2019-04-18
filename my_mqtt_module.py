@@ -5,16 +5,13 @@ __author__ = 'Jan Kempeneers'
 import paho.mqtt.client as mqtt
 import time, math, json, yaml
 
+# interpreting the yaml config file
+
 with open("my_mqtt_module.yml", 'r') as f:
     try:
         cfg_dic = yaml.safe_load(f)
     except yaml.YAMLError as exc:
         print(exc)
-
-print(cfg_dic["mqtt_publisher"]["time_interval"])
-
-# This is the Publisher
-
 server = cfg_dic["mqtt_publisher"]["server"]
 port = cfg_dic["mqtt_publisher"]["port"]
 #topic = "rpi-oven/temperature"
@@ -28,7 +25,7 @@ x_axis_steps = cfg_dic["sine_dataflow"]["x_axis_steps"]
 sine_amplitude = cfg_dic["sine_dataflow"]["sine_amplitude"]
 sine_displacement = cfg_dic["sine_dataflow"]["sine_displacement"]
 
-
+# This is the Publisher
 
 flag_connected = 0
 
