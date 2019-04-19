@@ -3,7 +3,7 @@
 __author__ = 'Jan Kempeneers'
 
 import time, math, json, statistics
-from my_mqtt_module import mqtt_publish
+from my_mqtt_module import mqtt_publish, time_interval
 from thermocouple_aio import sensor
 
 
@@ -58,7 +58,7 @@ def run():
                 print("last reading was an outlier")
             last_ten_temps.insert(0, temp)
             last_ten_temps.pop(10)
-        time.sleep(1)
+        time.sleep(time_interval)
         
 def main():
     run()
