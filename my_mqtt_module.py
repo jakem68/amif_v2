@@ -7,7 +7,7 @@ import time, json, yaml
 
 # interpreting the yaml config file
 
-with open("my_mqtt_module.yml", 'r') as f:
+with open("my_mqtt_module.yml", 'r') as f: # use full path to file
     try:
         cfg_dic = yaml.safe_load(f)
     except yaml.YAMLError as exc:
