@@ -66,7 +66,7 @@ def run():
     while True:
         msg = {"temperature": value}
         msg_out = json.dumps(msg)
-        mqtt_publish(topic, msg_out)
+        mqtt_publish(msg_out)
         time.sleep(1)
         value += 1
     client.disconnect()
