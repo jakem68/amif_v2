@@ -5,9 +5,3 @@ mqtt_publisher:
   username: "IrEKQCfL5fS1v5sJ1QWo"
   password: ""
   time_interval: 10 # int in seconds
-
-sine_dataflow:
-  enable: yes # yes and no are interpreted
-  x_axis_steps: 10 # int
-  sine_amplitude: 100 # int
-  sine_displacement: 100 # int

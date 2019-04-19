@@ -3,7 +3,7 @@
 __author__ = 'Jan Kempeneers'
 
 import paho.mqtt.client as mqtt
-import time, math, json, yaml
+import time, json, yaml
 
 # interpreting the yaml config file
 
@@ -20,11 +20,6 @@ username = cfg_dic["mqtt_publisher"]["username"]
 password = cfg_dic["mqtt_publisher"]["password"]
 time_interval = cfg_dic["mqtt_publisher"]["time_interval"]
 
-sine_dataflow_enabled = cfg_dic["sine_dataflow"]["enable"]
-x_axis_steps = cfg_dic["sine_dataflow"]["x_axis_steps"]
-sine_amplitude = cfg_dic["sine_dataflow"]["sine_amplitude"]
-sine_displacement = cfg_dic["sine_dataflow"]["sine_displacement"]
-
 # This is the Publisher
 
 flag_connected = 0
@@ -38,11 +33,7 @@ def on_disconnect(client, userdata, rc):
    global flag_connected
    flag_connected = 0
 
-client = mqtt.Client()
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-
-def initialize_mqtt_client(server=server, port=port, username=username, password=password):
+def client_initialize(server=server, port=port, username=username, password=password):
     if username != "":
         client.username_pw_set(username, password)
 
@@ -53,7 +44,7 @@ def initialize_mqtt_client(server=server, port=port, username=username, password
 
     print("mqtt client connected")
 
-def publish_mqtt_message(topic, msg_out):
+def mqtt_publish(msg_out, topic=topic):
     if flag_connected == 1:
     # Publish message
         client.publish(topic, msg_out)
@@ -63,24 +54,21 @@ def publish_mqtt_message(topic, msg_out):
         client.connect(server,port,60)
 #       client.loop_forever()
 
-def calculate_sine_datapoint(x_value):
-        sine_datapoint = int(round(math.sin(math.radians(x_value))*sine_amplitude))+sine_displacement
-        return sine_datapoint
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_disconnect = on_disconnect
+client_initialize()
 
+# sending some values for when testing
 
 def run():
-    initialize_mqtt_client()
-    x_value=0
+    value=0
     while True:
-        if sine_dataflow_enabled == True:
-            sine_datapoint = calculate_sine_datapoint(x_value)
-            msg = {"temperature": sine_datapoint}
-        else:
-            msg = None
+        msg = {"temperature": value}
         msg_out = json.dumps(msg)
-        publish_mqtt_message(topic, msg_out)
+        mqtt_publish(topic, msg_out)
         time.sleep(1)
-        x_value += x_axis_steps
+        value += 1
     client.disconnect()
 
 def main():
