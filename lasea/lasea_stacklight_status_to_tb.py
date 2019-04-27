@@ -12,22 +12,22 @@ sensors = {
     "sensor1": {
         "color": "red",
         "pin": 3,
-        "status": False,
+        "status": "False",
         },
     "sensor2": {
         "color": "green",
         "pin": 4,
-        "status": False,
+        "status": "False",
         },
     "sensor3": {
         "color": "yellow",
         "pin": 17,
-        "status": False,
+        "status": "False",
         },
     "sensor4": {
         "color": "blue",
         "pin": 27,
-        "status": False,
+        "status": "False",
         },
     }
 # loop through pins to set them as DIG IN
@@ -40,7 +40,7 @@ for s in sensors:
 def get_lamp_status():
     # read sensor values: looping through sensors and get inversed GPIO pin status
     for s in sensors:
-        sensors[s]["status"] = not GPIO.input(sensors[s]["pin"])
+        sensors[s]["status"] = str(not GPIO.input(sensors[s]["pin"]))
     return sensors
 
 def send_to_tb(sensors):
