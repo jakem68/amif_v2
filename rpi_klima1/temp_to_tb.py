@@ -3,10 +3,10 @@
 __author__ = 'Jan Kempeneers'
 
 import time, math, json, statistics
-from my_mqtt_module import mqtt_publish, time_interval
+from my_mqtt_module import mqtt_publish, time_interval, sensor_snr
 from read_ds18b20_temp import get_temperature
 
-sensor_snr = "28-051692d95eff" # sensor snr for klima1 (= Fehlmann room)
+# sensor_snr = "28-051692d95eff" # sensor snr for klima1 (= Fehlmann room)
 
 def isNaN(num):
     return num != num
