@@ -1,5 +1,10 @@
+#!/usr/bin/python3
+
+__author__ = 'Jan Kempeneers'
+
+
 import RPi.GPIO as GPIO
-import subprocess
+import subprocess, time
 
 sensor_snr = "28-051692d95eff" # sensor snr for klima1 (= Fehlmann room)
 
@@ -48,6 +53,7 @@ def get_temperature(sensor_snr):
     return(temp)
 
 def main():
+    interval = 2
     while True:
         print("current temperature is {}".format(get_temperature(sensor_snr)))
         time.sleep(interval)
