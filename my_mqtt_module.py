@@ -20,6 +20,8 @@ username = cfg_dic["mqtt_publisher"]["username"]
 password = cfg_dic["mqtt_publisher"]["password"]
 time_interval = cfg_dic["mqtt_publisher"]["time_interval"]
 
+sensor_snr = cfg_dic["hardware"]["sensor_snr"]
+
 # This is the Publisher
 
 flag_connected = 0
