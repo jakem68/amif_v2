@@ -5,3 +5,6 @@ mqtt_publisher:
   username: "IrEKQCfL5fS1v5sJ1QWo"
   password: ""
   time_interval: 10 # int in seconds
+  
+hardware:
+  sensor_snr: "28-051692d95eff" # sensor snr for klima1 (= Fehlmann room)
