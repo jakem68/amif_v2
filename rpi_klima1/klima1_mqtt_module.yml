@@ -1,7 +1,0 @@
-mqtt_publisher:
-  server: "demo.thingsboard.io" # can also be 127.0.0.1
-  port: 1883 # standard mqtt port is 1883
-  topic: "v1/devices/me/telemetry" # is a standard value in ThingsBoard for all topics, username is actually the device where the data is sent to.
-  username: "zp5VPNMFnyvQjoRBfpJj"
-  password: ""
-  time_interval: 10 # int in seconds
