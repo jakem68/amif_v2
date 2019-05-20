@@ -19,6 +19,9 @@ class Mqtt:
         self.flag_connected = 0
         self.client = mqtt.Client()
 
+    def get_time_interval(self):
+        return self.cfg["time_interval"]
+
     def on_connect(self, client, userdata, flags, rc):
         ## global flag_connected
         self.flag_connected = 1
