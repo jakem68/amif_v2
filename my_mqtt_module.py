@@ -1,77 +1,85 @@
-#!/usr/bin/python3
+#!/home/jan/paho_mqtt_client/venv/bin/python3
 
 __author__ = 'Jan Kempeneers'
 
 import paho.mqtt.client as mqtt
 import time, json, yaml
 
-# interpreting the yaml config file
 
-with open("my_mqtt_module.yml", 'r') as f: # use full path to file
-    try:
-        cfg_dic = yaml.safe_load(f)
-    except yaml.YAMLError as exc:
-        print(exc)
-server = cfg_dic["mqtt_publisher"]["server"]
-port = cfg_dic["mqtt_publisher"]["port"]
-#topic = "rpi-oven/temperature"
-topic = cfg_dic["mqtt_publisher"]["topic"]
-username = cfg_dic["mqtt_publisher"]["username"]
-password = cfg_dic["mqtt_publisher"]["password"]
-time_interval = cfg_dic["mqtt_publisher"]["time_interval"]
+class Mqtt:
+    def __init__(self, config_file="my_mqtt_module.yml"):
+        self.config_file = config_file
+        # interpreting the yaml config file
+        with open(self.config_file, 'r') as self.f: # use full path to file
+            try:
+                self.cfg = yaml.safe_load(self.f)
+                print(self.cfg["server"])
+            except yaml.YAMLError as exc:
+                print(exc)
+        self.flag_connected = 0
+        self.client = mqtt.Client()
 
-sensor_snr = cfg_dic["hardware"]["sensor_snr"]
+    def on_connect(self, client, userdata, flags, rc):
+        ## global flag_connected
+        self.flag_connected = 1
+        print("connected to mqtt broker")
 
-# This is the Publisher
+    def on_disconnect(self, client, userdata, rc):
+        ## global flag_connected
+        self.flag_connected = 0
 
-flag_connected = 0
+    def client_initialize(self):
+        self.server=self.cfg["server"]
+        self.port=self.cfg["port"]
+        self.username=self.cfg["username"]
+        self.password=self.cfg["password"]
+        if self.username != "":
+            self.client.username_pw_set(self.username, self.password)
+        # keep retrying until endpoint available and connection established
+        while not self.flag_connected == 1:
+            try:
+                self.client.connect(self.server,self.port,60)
+                time.sleep(0.5)
+                self.client.loop()
+            except:
+                time.sleep(1)
+                pass
+        print("mqtt client connected")
 
-def on_connect(client, userdata, flags, rc):
-   global flag_connected
-   flag_connected = 1
-   print("connected to mqtt broker")
+    def publish(self, msg_out):
+        self.topic=self.cfg["topic"]
+        if self.flag_connected == 1:
+        # Publish message
+            self.client.publish(self.topic, msg_out)
+            print(msg_out, end=" ", flush=True)
+        else:
+        # Wait to reconnect
+            while not self.flag_connected == 1:
+                try:
+                    self.client.connect(self.server,self.port,60)
+                    time.sleep(0.5)
+                    self.client.loop()
+                except:
+                    time.sleep(1)
+                    pass
 
-def on_disconnect(client, userdata, rc):
-   global flag_connected
-   flag_connected = 0
-
-def client_initialize(server=server, port=port, username=username, password=password):
-    if username != "":
-        client.username_pw_set(username, password)
-
-    client.connect(server,port,60)
-
-    while not flag_connected == 1:
-        client.loop()
-
-    print("mqtt client connected")
-
-def mqtt_publish(msg_out, topic=topic):
-    if flag_connected == 1:
-    # Publish message
-        client.publish(topic, msg_out)
-        print(msg_out)
-    else:
-    # Wait to reconnect
-        client.connect(server,port,60)
-#       client.loop_forever()
-
-client = mqtt.Client()
-client.on_connect = on_connect
-client.on_disconnect = on_disconnect
-client_initialize()
+    def start(self):
+        self.client.on_connect = self.on_connect
+        self.client.on_disconnect = self.on_disconnect
+        self.client_initialize()
 
 # sending some values for when testing
-
 def run():
+    mqtt1 = Mqtt("my_mqtt_module.yml")
+    mqtt1.start()
     value=0
     while True:
         msg = {"temperature": value}
         msg_out = json.dumps(msg)
-        mqtt_publish(msg_out)
+        mqtt1.publish(msg_out)
         time.sleep(1)
         value += 1
-    client.disconnect()
+    mqtt1.client.disconnect()
 
 def main():
     run()
