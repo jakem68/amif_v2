@@ -1,4 +1,4 @@
-#!/home/jan/paho_mqtt_client/venv/bin/python3
+#!/usr/bin/python3
 
 __author__ = 'Jan Kempeneers'
 
@@ -6,9 +6,11 @@ import time, math, json, statistics
 from poweroff_dweet import dweet_run
 # start dweet services
 dweet_run("sirris.amifv2.oven")
-from my_mqtt_module import mqtt_publish, time_interval
+from my_mqtt_module import Mqtt
 from thermocouple_aio import sensor
 
+mqtt1 = Mqtt("my_mqtt_module.yml")
+mqtt1.start()
 
 sine_dataflow_enabled = False
 x_axis_steps = 10
@@ -67,12 +69,12 @@ def run():
                 if temp_is_valid(temp, last_ten_temps):
                     msg = {"temperature": temp}
                     msg_out = json.dumps(msg)
-                    mqtt_publish(msg_out = msg_out)
+                    mqtt1.publish(msg_out = msg_out)
                 else:
                     print("last reading was an outlier")
             last_ten_temps.insert(0, temp)
             last_ten_temps.pop(10)
-        time.sleep(time_interval)
+        time.sleep(mqtt1.get_time_interval())
         
 def main():
     run()
