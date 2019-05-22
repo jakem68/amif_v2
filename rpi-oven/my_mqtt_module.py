@@ -7,7 +7,7 @@ import time, json, yaml
 
 
 class Mqtt:
-    def __init__(self, config_file="my_mqtt_module.yml"):
+    def __init__(self, config_file="/home/pi/programs/my_mqtt_module.yml"):
         self.config_file = config_file
         # interpreting the yaml config file
         with open(self.config_file, 'r') as self.f: # use full path to file
@@ -41,6 +41,7 @@ class Mqtt:
         # keep retrying until endpoint available and connection established
         while not self.flag_connected == 1:
             try:
+                print("trying ", end="", flush=True)
                 self.client.connect(self.server,self.port,60)
                 time.sleep(0.5)
                 self.client.loop()
