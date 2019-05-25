@@ -1,0 +1,14 @@
+[Unit]
+Description=user pi send thermocouple measurement to ubuntu vm
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/programs/temp_to_mqtt.py /home/pi/programs/temp_to_tb_ubuntu.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
