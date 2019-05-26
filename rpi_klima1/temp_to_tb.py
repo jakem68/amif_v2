@@ -2,11 +2,10 @@
 
 __author__ = 'Jan Kempeneers'
 
-import time, math, json, statistics
-from my_mqtt_module import mqtt_publish, time_interval, sensor_snr
+import time, math, json, statistics, sys
+from my_mqtt_module import Mqtt
 from read_ds18b20_temp import get_temperature
 
-# sensor_snr = "28-051692d95eff" # sensor snr for klima1 (= Fehlmann room)
 
 def isNaN(num):
     return num != num
@@ -25,7 +24,11 @@ def temp_is_valid(temp, last_ten_temps):
         result = True
     return result    
 
-def run():
+def run(my_mqtt_config_yaml):
+    mqtt = Mqtt(my_mqtt_config_yaml)
+    mqtt.start()
+    sensor_snr = mqtt.get_sensor_snr()
+    time_interval = mqtt.get_time_interval()
     last_ten_temps = []
     while True:
         datapoint = get_temperature(sensor_snr)
@@ -40,7 +43,7 @@ def run():
             if temp_is_valid(temp, last_ten_temps):
                 msg = {"temperature": temp}
                 msg_out = json.dumps(msg)
-                mqtt_publish(msg_out = msg_out)
+                mqtt.publish(msg_out = msg_out)
             else:
                 print("last reading was an outlier")
             last_ten_temps.insert(0, temp)
@@ -48,7 +51,8 @@ def run():
         time.sleep(time_interval)
         
 def main():
-    run()
+    my_mqtt_config_yaml = sys.argv[1]
+    run(my_mqtt_config_yaml)
 
 if __name__ == "__main__":
     main()
