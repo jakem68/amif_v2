@@ -22,6 +22,9 @@ class Mqtt:
     def get_time_interval(self):
         return self.cfg["time_interval"]
 
+    def get_sensor_snr(self):
+        return self.cfg["sensor_snr"]
+
     def on_connect(self, client, userdata, flags, rc):
         ## global flag_connected
         self.flag_connected = 1
