@@ -1,0 +1,7 @@
+server: "pc00392" # can also be 127.0.0.1
+port: 1883 # standard mqtt port is 1883
+topic: "sirris/diep2/klima2/temp"
+username: ""
+password: ""
+time_interval: 10 # int in seconds
+sensor_snr: "28-03168af0c4ff" # sensor snr for klima2 (= Lasea room)
