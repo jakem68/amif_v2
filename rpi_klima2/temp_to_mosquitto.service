@@ -1,0 +1,13 @@
+[Unit]
+Description=user pi start ds18b20 temperature measurement and sent result to mosquitto bro$
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/temp_to_tb.py /home/pi/temp_to_mosquitto.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
