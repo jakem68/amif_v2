@@ -1,15 +1,14 @@
 #! /usr/bin/python3
 
-import RPi.GPIO as GPIO
-import time, sys, json, copy
+import RPi.GPIO as GPIO 
+import time, sys, json, copy, opcua_server
 
 from my_mqtt_module import Mqtt
 
 GPIO.setmode(GPIO.BCM)
 
 # topics are set in config.yml file
-  # topic_current_status = "diep2/lasea/stack_light/current_status"
-  # topic_status_changed = "diep2/lasea/stack_light/status_changed"
+  # topic_current_status = "diep2/lasea/stack_light/current_status" topic_status_changed = "diep2/lasea/stack_light/status_changed"
 
 message = {"id":2, "timestamp":"", "payload": ""}
 
@@ -57,9 +56,7 @@ def get_lamp_status():
         sensors[s]["changes"] = 0
 
     # check the status every 0.25 sec during 3 secs and check per colour how many changes took place
-        # if <1 change in 3 secs = not blinking
-        # if 1 change in 3 secs = possibly blinking --> check for two more seconds to make sure
-        # if >1 change in 5 secs = blinking
+        # if <1 change in 3 secs = not blinking if 1 change in 3 secs = possibly blinking --> check for two more seconds to make sure if >1 change in 5 secs = blinking
     sensors_previous = copy.deepcopy(sensors) # deepcopy function to copy all levels of dict without mixing the two dicts
     change_detected = False
 
@@ -109,21 +106,26 @@ def update_message():
 #    mqtt_message = json.dumps(message)
 
 def run(my_mqtt_config_yaml):
-    mqtt = Mqtt(my_mqtt_config_yaml)
-    mqtt.start()
-    lamp_status_before = ""
-    while True:
-        update_message()
-        if message["payload"] != lamp_status_before:
-            print("change confirmed, publishing new status: {}".format(message))
-            message_str = json.dumps(message)
-            mqtt.publish(message_str)
-            lamp_status_before = message["payload"]
-        # no longer required to wait because getting the lamp status takes 3s at minimum
-        # time.sleep(mqtt.get_time_interval())
+    try:
+        mqtt = Mqtt(my_mqtt_config_yaml)
+        mqtt.start()
+        lamp_status_before = ""
+        opcua_server.server.start()
+        while True:
+            update_message()
+            opcua_server.myvar.set_value(json.dumps(message))
+            if message["payload"] != lamp_status_before:
+                print("change confirmed, publishing new status: {}".format(message))
+                message_str = json.dumps(message)
+                mqtt.publish(message_str)
+                lamp_status_before = message["payload"]
+            # no longer required to wait because getting the lamp status takes 3s at minimum time.sleep(mqtt.get_time_interval())
+    finally:
+        #close connection, remove subcsriptions, etc
+        opcua_server.server.stop()
 
 def main():
-    # the yml config file is passed through from the service file which is calling 
+    # the yml config file is passed through from the service file which is calling
     my_mqtt_config_yaml = sys.argv[1]
     run(my_mqtt_config_yaml)
 
