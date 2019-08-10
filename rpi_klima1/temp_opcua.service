@@ -6,7 +6,7 @@ After=network.target
 WorkingDirectory=/home/pi
 Type=idle
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/opcua_server.py
+ExecStart=/usr/bin/python3 /media/usb/opcua_server.py
 Restart=always
 
 [Install]

@@ -5,7 +5,7 @@ __author__ = 'Jan Kempeneers'
 import datetime, time, math, json, statistics, sys
 from read_ds18b20_temp import get_temperature
 
-sensor_snr = "28-051692d95eff" # sensor snr for klima2 (= Lasea room)
+sensor_snr = "28-051692d95eff" # sensor snr for klima1 (= Fehlman room)
 time_interval = 1
 
 
