@@ -13,97 +13,113 @@ GPIO.setmode(GPIO.BCM)
 message = {"id":2, "timestamp":"", "payload": ""}
 
 sensors = {
-    "sensor1": {
-        "color": "white",
-        "pin": 3,
-        "status": "False",
-        "changes": 0,
-        },
-    "sensor2": {
-        "color": "red",
-        "pin": 4,
-        "status": "False",
-        "changes": 0,
-        },
-    "sensor3": {
-        "color": "yellow",
-        "pin": 17,
-        "status": "False",
-        "changes": 0,
-        },
-    "sensor4": {
-        "color": "blue",
-        "pin": 22,
-        "status": "False",
-        "changes": 0,
-        },
-    "sensor5": {
-        "color": "green",
-        "pin": 27,
-        "status": "False",
-        "changes": 0,
-        },
+    "sensor1": {"color": "white","pin": 3,"value": False,"status": "off","changes": 0,},
+    "sensor2": {"color": "red","pin": 4,"value": False,"status": "off","changes": 0,},
+    "sensor3": {"color": "yellow","pin": 17,"value": False,"status": "off","changes": 0,},
+    "sensor4": {"color": "blue","pin": 22,"value": False,"status": "off","changes": 0,},
+    "sensor5": {"color": "green","pin": 27,"value": False,"status": "off","changes": 0,},
     }
 
+# initialize pins as Inputs
 for s in sensors:
     GPIO.setup(sensors[s]["pin"], GPIO.IN)
 
-def get_lamp_status():
-    # read sensor values: looping through sensors and get inversed GPIO pin status
+def update_sensor_values():
+    # read sensor values: looping through sensors and get inversed GPIO pin value
     for s in sensors:
-        sensors[s]["status"] = str(not GPIO.input(sensors[s]["pin"]))
-        # reset detected changes to zero
+        sensors[s]["value"] = str(not GPIO.input(sensors[s]["pin"]))
+
+def reset_sensor_changes():
+    for s in sensors:
         sensors[s]["changes"] = 0
 
-    # check the status every 0.25 sec during 3 secs and check per colour how many changes took place
-        # if <1 change in 3 secs = not blinking if 1 change in 3 secs = possibly blinking --> check for two more seconds to make sure if >1 change in 5 secs = blinking
-    sensors_previous = copy.deepcopy(sensors) # deepcopy function to copy all levels of dict without mixing the two dicts
-    change_detected = False
+def return_changed_colors(sensor_dict_one, sensor_dict_two):
+    changed_colors = []
+    for s in sensor_dict_one:
+        if sensor_dict_one[s]["value"] != sensor_dict_two[s]["value"]:
+            changed_colors.append(sensor_dict_one[s]["color"])
+    return changed_colors
 
+def opcua_update():
+    for s in sensors:
+        value = sensors[s]["value"]
+        status = sensors[s]["status"]
+        switcher.get(sensors[s]["color"])(value, status)
+
+def opcua_update_green(value, status):
+    opcua_server.green_value.set_value(value)
+    opcua_server.green_status.set_value(status)
+    print("green, {}, {}".format(value, status))
+
+def opcua_update_red(value, status):
+    opcua_server.red_value.set_value(value)
+    opcua_server.red_status.set_value(status)
+    print("red, {}, {}".format(value, status))
+
+def opcua_update_yellow(value, status):
+    opcua_server.yellow_value.set_value(value)
+    opcua_server.yellow_status.set_value(status)
+    print("yellow, {}, {}".format(value, status))
+
+def opcua_update_blue(value, status):
+    opcua_server.blue_value.set_value(value)
+    opcua_server.blue_status.set_value(status)
+    print("blue, {}, {}".format(value, status))
+
+def opcua_update_white(value, status):
+    opcua_server.white_value.set_value(value)
+    opcua_server.white_status.set_value(status)
+    print("white, {}, {}".format(value, status))
+
+def add_changes_per_color(changed_colors):
+    for s in sensors:
+        if sensors[s]["color"] in changed_colors:
+            sensors[s]["changes"] += 1
+
+def check_for_blinking():
     # loop 12 times * 0.25s to check during 3 secs and count changes
+    blinking = False
     for i in range(12):
-        for s in sensors:
-            sensors[s]["status"] = str(not GPIO.input(sensors[s]["pin"]))
-            if sensors[s]["status"] != sensors_previous[s]["status"]:
-                sensors[s]["changes"] += 1
         sensors_previous = copy.deepcopy(sensors)
         time.sleep(0.25)
-    
+        update_sensor_values()
+        changed_colors = return_changed_colors(sensors_previous, sensors)
+        add_changes_per_color(changed_colors)
+        changed_colors = []
     for s in sensors:
-        if sensors[s]["changes"]>0:
-            change_detected = True
-    
-    # if change detected look 2s longer for a second change being confirmation of blinking
-    if change_detected:
-        print("change detected")
-        for i in range(8):
-            for s in sensors:
-                sensors[s]["status"] = str(not GPIO.input(sensors[s]["pin"]))
-                if sensors[s]["status"] != sensors_previous[s]["status"]:
-                    sensors[s]["changes"] += 1
-            sensors_previous = copy.deepcopy(sensors)
-            time.sleep(0.25)
+        if sensors[s]["changes"]>1:
+            blinking = True
+    return blinking
 
-    # if changes detected for one colour >1 then light is blinking
+def update_sensors_status():
     for s in sensors:
         if sensors[s]["changes"]>1:
             sensors[s]["status"] = "blinking"
             print("sensor {} is {}.".format(sensors[s]["color"], sensors[s]["status"]))
+        elif sensors[s]["value"] == "True":
+            sensors[s]["status"] = "on"
+        else:
+            sensors[s]["status"] = "off"
+    reset_sensor_changes()
 
+def get_lamp_status():
     # extract color and status only
     sensors_status = {}
     for s in sensors:
         sensors_status[sensors[s]["color"]] = sensors[s]["status"]
 
     # create json object from color and status only
-    payload = {"status": json.dumps(sensors_status)}
-    payload_str = json.dumps(payload)
+    payload_str = json.dumps(sensors_status)
     return payload_str
 
-def update_message():
+def update_mqtt_message():
     message["payload"] = get_lamp_status()
     message["timestamp"] = time.strftime('%Y-%m-%d %H:%M:%S')
-#    mqtt_message = json.dumps(message)
+
+
+switcher = {"red":opcua_update_red, "green":opcua_update_green, 
+            "yellow":opcua_update_yellow, "blue":opcua_update_blue, "white":opcua_update_white}
+
 
 def run(my_mqtt_config_yaml):
     try:
@@ -111,15 +127,20 @@ def run(my_mqtt_config_yaml):
         mqtt.start()
         lamp_status_before = ""
         opcua_server.server.start()
+        status_changed = False
         while True:
-            update_message()
-            opcua_server.myvar.set_value(json.dumps(message))
-            if message["payload"] != lamp_status_before:
-                print("change confirmed, publishing new status: {}".format(message))
+            previous_sensors = copy.deepcopy(sensors)
+            check_for_blinking()
+            update_sensors_status()
+            opcua_update()
+            for s in sensors:
+                if sensors[s]["status"] is not previous_sensors[s]["status"]:
+                  status_changed = True
+            if status_changed:
+                status_changed = False
+                update_mqtt_message()
                 message_str = json.dumps(message)
                 mqtt.publish(message_str)
-                lamp_status_before = message["payload"]
-            # no longer required to wait because getting the lamp status takes 3s at minimum time.sleep(mqtt.get_time_interval())
     finally:
         #close connection, remove subcsriptions, etc
         opcua_server.server.stop()
@@ -132,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
