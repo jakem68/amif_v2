@@ -45,6 +45,7 @@ def opcua_update():
         value = sensors[s]["value"]
         status = sensors[s]["status"]
         switcher.get(sensors[s]["color"])(value, status)
+    opcua_update_slm()
 
 def opcua_update_green(value, status):
     opcua_server.green_value.set_value(value)
@@ -70,6 +71,32 @@ def opcua_update_white(value, status):
     opcua_server.white_value.set_value(value)
     opcua_server.white_status.set_value(status)
     print("white, {}, {}".format(value, status))
+
+def opcua_update_slm():
+    active_sensors = []
+    highest_color = ""
+    slm_status = ""
+    for s in sensors:
+        if sensors[s]["status"] != "off":
+            active_sensors.append(sensors[s]["color"])
+    # look for most important active sensor
+    if active_sensors != []:
+        if "red" in active_sensors:
+            highest_color = "red"
+        elif "yellow" in active_sensors:
+            highest_color = "yellow"
+        elif "blue" in active_sensors:
+            highest_color = "blue"
+        elif "green" in active_sensors:
+            highest_color = "green"
+        elif "white" in active_sensors:
+            highest_color = "white"
+    if highest_color != "":
+        for s in sensors:
+            if sensors[s]["color"] == highest_color:
+                slm_status = "{}, {}".format(sensors[s]["color"], sensors[s]["status"])
+    opcua_server.myvar.set_value(slm_status)
+
 
 def add_changes_per_color(changed_colors):
     for s in sensors:
@@ -109,8 +136,9 @@ def get_lamp_status():
         sensors_status[sensors[s]["color"]] = sensors[s]["status"]
 
     # create json object from color and status only
-    payload_str = json.dumps(sensors_status)
-    return payload_str
+#    payload_str = json.dumps(sensors_status)
+#    return payload_str
+    return sensors_status
 
 def update_mqtt_message():
     message["payload"] = get_lamp_status()
