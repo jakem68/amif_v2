@@ -134,10 +134,6 @@ def get_lamp_status():
     sensors_status = {}
     for s in sensors:
         sensors_status[sensors[s]["color"]] = sensors[s]["status"]
-
-    # create json object from color and status only
-#    payload_str = json.dumps(sensors_status)
-#    return payload_str
     return sensors_status
 
 def update_mqtt_message():
