@@ -106,7 +106,7 @@ def add_changes_per_color(changed_colors):
 def check_for_blinking():
     # loop 18 times * 0.25s to check during 4.5 secs and count changes
     blinking = False
-    for i in range(12):
+    for i in range(18):
         sensors_previous = copy.deepcopy(sensors)
         time.sleep(0.25)
         update_sensor_values()
