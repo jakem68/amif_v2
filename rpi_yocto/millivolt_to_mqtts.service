@@ -1,0 +1,13 @@
+[Unit]
+Description=user pi start yoctopuce milliVolt measurement and sent result to demo tb and mosquitto broker
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python3 /home/pi/millivolt_to_mqtts.py /home/pi/millivolt_to_tb_demo.yml /home/pi/millivolt_to_mosquitto.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

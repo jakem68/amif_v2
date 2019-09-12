@@ -6,7 +6,7 @@ After=network.target
 WorkingDirectory=/home/pi
 Type=idle
 User=pi
-ExecStart=/usr/bin/python3 /home/pi/millivolt_to_mqtt.py /home/pi/millivolt_to_tb_demo.yml
+ExecStart=/usr/bin/python3 /home/pi/millivolt_to_tb_demo.py /home/pi/millivolt_to_tb_demo.yml
 Restart=always
 
 [Install]
