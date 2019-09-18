@@ -69,9 +69,9 @@ def dict_compare(d1, d2):
     return added, removed
 
 def update_message(payload):
-    payload_str = json.dumps(payload)
+#    payload_str = json.dumps(payload)
     message["timestamp"] = time.strftime('%Y-%m-%d %H:%M:%S')
-    message["payload"] = payload_str
+    message["payload"] = payload
     msg_out = json.dumps(message)
     return msg_out
 
@@ -107,7 +107,7 @@ while continue_reading:
             r_list = list(r_tuple)
             r_list[4]="OFF"
             r_str = ','.join(map(str, r_list))
-            msg_out = update_message(r_list)
+            msg_out = update_message(r_str)
             my_mqtt.publish(msg_out = msg_out)
 
     if time.time() - mqtt_start_time > 30:

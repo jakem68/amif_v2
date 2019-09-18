@@ -1,0 +1,13 @@
+[Unit]
+Description=user pi start rfid reader and sent card reads and removals to mosquitto broker
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python /media/usb/MFRC522-python/rfid_read.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

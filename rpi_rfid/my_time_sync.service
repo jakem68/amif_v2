@@ -1,0 +1,14 @@
+[Unit]
+Description=sync time at regular intervals manually
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/bash -c "sudo ntpd -qg"
+Restart=always
+RestartSec=3600s
+
+[Install]
+WantedBy=multi-user.target
