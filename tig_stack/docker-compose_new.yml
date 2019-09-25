@@ -1,0 +1,57 @@
+version: '2'
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    volumes:
+      - c:\docker\tig_stack\influxdb:/var/lib/influxdb
+    ports:
+      - "8086:8086"
+    networks:
+      - influxdb
+  telegraf_json:
+    image: telegraf:latest
+    container_name: telegraf_json
+    volumes:
+      - c:\docker\tig_stack\telegraf\telegraf_json.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb
+  telegraf_float:
+    image: telegraf:latest
+    container_name: telegraf_float
+    volumes:
+      - c:\docker\tig_stack\telegraf\telegraf_float.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb
+  my_mqtt_influx_agent:
+    build: .\my_mqtt_influx_agent
+    container_name: my_mqtt_influx_agent
+    restart: always
+    stdin_open: true
+    tty: true
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    user: "1000"
+    volumes:
+      - c:\docker\tig_stack\grafana\data:/var/lib/grafana
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    networks:
+      - influxdb
+
+networks:
+  influxdb:
+    driver: bridge
