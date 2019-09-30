@@ -1,0 +1,13 @@
+[Unit]
+Description=user pi start templogger and send measurements to mosquitto broker
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python3 /media/usb/read_temp.py /media/usb/my_mqtt_module.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
