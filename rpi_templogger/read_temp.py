@@ -50,10 +50,35 @@ for sensor in sensors.values():
 def isNaN(num):
     return num != num
 
-def temp_is_valid(temp, last_ten_temps):
+def get_temp_reading(sensor):
+    temps = []
+    for count in range(5):
+        temps.append(sensor["max31855"].readTempC())
+        time.sleep(0.05)
+    if temps == [] or statistics.stdev(temps) > 1:
+        temp_final = ""
+    else:
+        for index, temp in enumerate(temps):
+            if isNaN(temp):
+                temps.pop(index)
+        if not temps == []:
+            for temp in temps:
+                if abs(temp - statistics.mean(temps)) > 3 * statistics.stdev(temps):
+                    temps.pop(index)
+            if not temps == []:
+                temp_final = statistics.mean(temps)
+            else:
+                temp_final = ""
+        else:
+            temp_final = ""
+    return temp_final
+
+def temp_is_valid(temp, last_ten_temps, max_delta_temp_per_interval):
     try:
         mean = statistics.mean(last_ten_temps)
         stdev = statistics.stdev(last_ten_temps)
+        if stdev < max_delta_temp_per_interval:
+            stdev = max_delta_temp_per_interval
         print("{}, stdev is {}, mean is {}".format(last_ten_temps, stdev, mean))
     except:
         print("some error")
@@ -66,49 +91,39 @@ def temp_is_valid(temp, last_ten_temps):
 def run(my_mqtt_config_yaml):
     mqtt = Mqtt(my_mqtt_config_yaml)
     mqtt.start()
+    time_interval = mqtt.get_time_interval()
+    max_delta_temp_per_sec = 5
+    max_delta_temp_per_interval = time_interval*max_delta_temp_per_sec
 
     while True:
         for sensor in sensors.values():
             # check for stable reading by comparing two readings
-            first_reading = sensor["max31855"].readTempC()
-            second_reading = sensor["max31855"].readTempC()
+            temp = get_temp_reading(sensor)
             last_ten_temps = sensor["last_ten_temps"]
-            # check whether both readings are numbers
-            if (isNaN(first_reading)) or (isNaN(second_reading)):
-                print("temperature value is NaN")
-                pass
+            # check whether new reading makes sense by comparing with last ten readings
+            # within range of +/- 3*stdev of last ten readings. If outside this range don't send to TB for now but
+            #  add it to the list of last ten readings --> increases stdev for evaluation of next reading
+            if len(last_ten_temps) < 10:
+                last_ten_temps = [temp]*10
+            if temp_is_valid(temp, last_ten_temps, max_delta_temp_per_interval):
+                sensor["temp"] = temp
             else:
-                # avoid outliers when 3*stdev is wide by evaluating 2 immediate consecutive measurements
-                if abs(first_reading - second_reading) > 2:
-                    print("temperature reading is not stable")
-                    print("first_reading is {}, and second_reading is {}".format(first_reading, second_reading))
-                    pass
-                # check whether new reading makes sense by comparing with last ten readings
-                # within range of +/- 3*stdev of last ten readings. If outside this range don't send to TB for now but
-                #  add it to the list of last ten readings --> increases stdev for evaluation of next reading
-                else:
-                    temp = first_reading
-                    sensor["temp"] = temp
-                    if len(last_ten_temps) < 10:
-                        last_ten_temps = [temp]*10
+                print("last reading was an outlier")
+            last_ten_temps.insert(0, temp)
+            last_ten_temps.pop(10)
+            sensor["last_ten_temps"] = last_ten_temps
 
-                    # if temp_is_valid(temp, last_ten_temps):
-                    #     sensor["temp"] = temp
-                    # else:
-                    #     print("last reading was an outlier")
-
-                    last_ten_temps.insert(0, temp)
-                    last_ten_temps.pop(10)
-                    sensor["last_ten_temps"] = last_ten_temps
         msg = {}
         for sensor in sensors:
             key = sensor + "_temp"
             value = sensors[sensor]["temp"]
+            if isNaN(value):
+                value = ""
             msg.update({key : value})
         msg_out = json.dumps(msg)
         mqtt.publish(msg_out = msg_out)
 
-        time.sleep(mqtt.get_time_interval())
+        time.sleep(time_interval)
 
 
 def main():

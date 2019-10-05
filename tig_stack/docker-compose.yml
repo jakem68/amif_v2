@@ -29,6 +29,28 @@ services:
       - influxdb
     networks:
       - influxdb
+  my_mqtt_influx_agent:
+    build: .\my_mqtt_influx_agent
+    container_name: my_mqtt_influx_agent
+    restart: always
+    stdin_open: true
+    tty: true
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb
+  my_influxdb_size_publisher:
+    build: .\my_influx_size_publisher
+    container_name: my_influxdb_size_publisher
+    volumes:
+      - c:\docker\tig_stack\influxdb:/var/lib/influxdb:ro
+    restart: always
+    stdin_open: true
+    tty: true
+    depends_on:
+      - influxdb
+    networks:
+      - influxdb
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
