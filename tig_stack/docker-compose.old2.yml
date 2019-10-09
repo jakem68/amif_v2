@@ -57,8 +57,6 @@ services:
     user: "1000"
     volumes:
       - c:\docker\tig_stack\grafana\data:/var/lib/grafana
-    environment:
-      - GF_PATHS_CONFIG=/var/lib/grafana/conf/grafana.ini
     depends_on:
       - influxdb
     ports:
