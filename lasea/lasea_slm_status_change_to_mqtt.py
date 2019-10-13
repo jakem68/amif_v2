@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
 import RPi.GPIO as GPIO 
-import time, sys, json, copy, opcua_server
+import time, sys, json, copy, opcua_server, threading
 
 from my_mqtt_module import Mqtt
 
@@ -40,6 +40,56 @@ def return_changed_colors(sensor_dict_one, sensor_dict_two):
             changed_colors.append(sensor_dict_one[s]["color"])
     return changed_colors
 
+# count changes per colour to determine whether blinking or not
+def add_changes_per_color(changed_colors):
+    for s in sensors:
+        if sensors[s]["color"] in changed_colors:
+            sensors[s]["changes"] += 1
+
+def check_for_blinking():
+    # loop 18 times * 0.25s to check during 4.5 secs and count changes
+    blinking = False
+    for i in range(18):
+        sensors_previous = copy.deepcopy(sensors)
+        time.sleep(0.25)
+        update_sensor_values()
+        changed_colors = return_changed_colors(sensors_previous, sensors)
+        add_changes_per_color(changed_colors)
+        changed_colors = []
+    for s in sensors:
+        if sensors[s]["changes"]>1:
+            blinking = True
+    return blinking
+
+# update the status in the sensors dictionary and reset the sensor_changes dictionary
+def update_sensors_status():
+    for s in sensors:
+        if sensors[s]["changes"]>1:
+            sensors[s]["status"] = "blinking"
+            print("sensor {} is {}.".format(sensors[s]["color"], sensors[s]["status"]))
+        elif sensors[s]["value"] == "True":
+            sensors[s]["status"] = "on"
+        else:
+            sensors[s]["status"] = "off"
+    reset_sensor_changes()
+
+def get_lamp_status():
+    # extract color and status only
+    sensors_status = {}
+    for s in sensors:
+        sensors_status[sensors[s]["color"]] = sensors[s]["status"]
+    return sensors_status
+
+def update_mqtt_message():
+    message["payload"] = get_lamp_status()
+    message["timestamp"] = time.strftime('%Y-%m-%d %H:%M:%S')
+
+def run_opcua():
+    opcua_server.server.start()
+    while True:
+        opcua_update()
+        time.sleep(1)
+
 def opcua_update():
     for s in sensors:
         value = sensors[s]["value"]
@@ -72,6 +122,7 @@ def opcua_update_white(value, status):
     opcua_server.white_status.set_value(status)
     print("white, {}, {}".format(value, status))
 
+# updates the general status of the slm being the status of the most critical color which is active
 def opcua_update_slm():
     active_sensors = []
     highest_color = ""
@@ -97,66 +148,23 @@ def opcua_update_slm():
                 slm_status = "{}, {}".format(sensors[s]["color"], sensors[s]["status"])
     opcua_server.myvar.set_value(slm_status)
 
-
-def add_changes_per_color(changed_colors):
-    for s in sensors:
-        if sensors[s]["color"] in changed_colors:
-            sensors[s]["changes"] += 1
-
-def check_for_blinking():
-    # loop 18 times * 0.25s to check during 4.5 secs and count changes
-    blinking = False
-    for i in range(18):
-        sensors_previous = copy.deepcopy(sensors)
-        time.sleep(0.25)
-        update_sensor_values()
-        changed_colors = return_changed_colors(sensors_previous, sensors)
-        add_changes_per_color(changed_colors)
-        changed_colors = []
-    for s in sensors:
-        if sensors[s]["changes"]>1:
-            blinking = True
-    return blinking
-
-def update_sensors_status():
-    for s in sensors:
-        if sensors[s]["changes"]>1:
-            sensors[s]["status"] = "blinking"
-            print("sensor {} is {}.".format(sensors[s]["color"], sensors[s]["status"]))
-        elif sensors[s]["value"] == "True":
-            sensors[s]["status"] = "on"
-        else:
-            sensors[s]["status"] = "off"
-    reset_sensor_changes()
-
-def get_lamp_status():
-    # extract color and status only
-    sensors_status = {}
-    for s in sensors:
-        sensors_status[sensors[s]["color"]] = sensors[s]["status"]
-    return sensors_status
-
-def update_mqtt_message():
-    message["payload"] = get_lamp_status()
-    message["timestamp"] = time.strftime('%Y-%m-%d %H:%M:%S')
-
-
 switcher = {"red":opcua_update_red, "green":opcua_update_green, 
             "yellow":opcua_update_yellow, "blue":opcua_update_blue, "white":opcua_update_white}
 
 
+
 def run(my_mqtt_config_yaml):
     try:
+        thread_opcua = threading.Thread(target=run_opcua)
+        thread_opcua.start()
         mqtt = Mqtt(my_mqtt_config_yaml)
         mqtt.start()
         lamp_status_before = ""
-        opcua_server.server.start()
         status_changed = False
         while True:
             previous_sensors = copy.deepcopy(sensors)
             check_for_blinking()
             update_sensors_status()
-            opcua_update()
             for s in sensors:
                 if sensors[s]["status"] is not previous_sensors[s]["status"]:
                   status_changed = True
