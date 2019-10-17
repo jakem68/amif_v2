@@ -4,6 +4,7 @@ __author__ = 'Jan Kempeneers'
 
 import socket, sys, queue, threading
 
+
 def main():
     run()
 
@@ -14,7 +15,7 @@ def run():
     thread_sock = threading.Thread(target=create_socket_connection, args=(HOST, PORT, q))
     thread_sock.start()
 
-    while continue_reading:
+    while True:
         conn = q.get()
         print(conn)
         print("attaching to new connection")
@@ -23,6 +24,8 @@ def run():
             msg_in_str = msg_in.decode()
             if msg_in_str != '':
                 print(msg_in_str)
+                answer_in_bytes = ("Message arrived: {}".format(msg_in_str)).encode('utf-8')
+                conn.sendall(answer_in_bytes)
         conn.close()
 
 
@@ -40,7 +43,7 @@ def create_socket_connection(host, port, q):
     print('Socket bind complete')
     # start listening to the socket
 
-    while continue_reading:
+    while True:
         s.listen(2)
         print('Socket now listening')
         # server keeps listening, program continues only when connection is made

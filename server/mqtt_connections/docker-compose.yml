@@ -1,0 +1,16 @@
+version: '3'
+services:
+  pub:
+    stdin_open: true
+    tty: true
+    build: .\mqtt_pub
+  sub:
+    stdin_open: true
+    tty: true
+    build: .\mqtt_sub
+  socket_server_iiwa:
+    stdin_open: true
+    tty: true
+    ports:
+      - 30432:30432
+    build: .\pc00392_socket_server_iiwa
