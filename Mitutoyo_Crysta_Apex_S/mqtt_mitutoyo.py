@@ -5,7 +5,7 @@ import time
 
 # broker_url = "iot.eclipse.org"
 #broker_url = "test.mosquitto.org"
-broker_url = "broker.hivemq.com"
+broker_url = "172.16.10.1"
 broker_port = 1883
 
 flag_connected = 0
@@ -25,7 +25,7 @@ def on_disconnect(client, userdata, rc):
 
 def on_message(client, userdata, message):
     global messages_to_be_handled
-    print("Message Received: "+message.payload.decode())
+    # print("Message Received: "+message.payload.decode())
     messages_to_be_handled.append(message.payload.decode())
 
 client = mqtt.Client()
@@ -44,7 +44,9 @@ while not flag_connected == 1:
 
 def get_most_recent_message():
     global messages_to_be_handled
-    most_recent_message = messages_to_be_handled[-1]
+    most_recent_message = ""
+    if messages_to_be_handled:
+        most_recent_message = messages_to_be_handled[-1]
     messages_to_be_handled = []
     return most_recent_message
 

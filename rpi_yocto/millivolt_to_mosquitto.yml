@@ -4,4 +4,6 @@ topic: "sirris/diep2/klima2/verlichtingsindustrie4.0"
 username: ""
 password: ""
 time_interval: 3 # int in seconds
-sensor_snr: "RXMVOLT1-11507B" # sensor snr for yoctopuce millivolt module
+sensor_snr_mV: "RXMVOLT1-11507B" # sensor snr for yoctopuce millivolt module
+sensor_snr_mA: "TX420MA1-1176A2" # sensor snr for yoctopuce milliAmpere module
+current_set_value: 5.0 # set current for currentloop, floating point value between 3 and 21 mA

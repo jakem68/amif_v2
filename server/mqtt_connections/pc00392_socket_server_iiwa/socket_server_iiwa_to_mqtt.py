@@ -44,7 +44,7 @@ def create_socket_connection(host, port, q):
     # start listening to the socket
 
     while True:
-        s.listen(2)
+        s.listen(10)
         print('Socket now listening')
         # server keeps listening, program continues only when connection is made
         conn, addr = s.accept()

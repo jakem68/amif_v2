@@ -25,6 +25,9 @@ class Mqtt:
     def get_sensor_snr(self):
         return self.cfg["sensor_snr"]
 
+    def get_yml_item(self, item):
+        return self.cfg[item]
+
     def on_connect(self, client, userdata, flags, rc):
         ## global flag_connected
         self.flag_connected = 1
