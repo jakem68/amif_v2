@@ -1,0 +1,13 @@
+[Unit]
+Description=user pi sending lamp status changes to local mosquitto broker
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi
+Type=idle
+User=pi
+ExecStart=/usr/bin/python3 /media/usb/lasea_slm_status_change_to_mqtt.py /media/usb/lasea_slm_status_change_to_mosquitto.yml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

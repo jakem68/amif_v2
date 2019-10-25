@@ -10,8 +10,8 @@ broker_port = 1883
 
 flag_connected = 0
 messages_to_be_handled = []
-topic_listen = "sirris/diep2/klima1/mitutoyo"
-topic_send = "sirris/diep2/klima1/mitutoyo"
+topic_listen = "sirris/diep2/klima1/apex/machine/command"
+topic_send = "sirris/diep2/klima1/apex/machine/status_changed"
 
 def on_connect(client, userdata, flags, rc):
     global flag_connected

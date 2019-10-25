@@ -1,0 +1,6 @@
+server: "pc00392" # broker.hivemq.com # "pc00392" # can also be 127.0.0.1
+port: 1883 # standard mqtt port is 1883
+topic: "sirris/diep2/lasea/stack_light/status_changed" # is a standard value in ThingsBoard for all topics, username is actually the device where the data is sent to.
+username: ""
+password: ""
+time_interval: 1 # int in seconds

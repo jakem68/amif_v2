@@ -155,8 +155,8 @@ switcher = {"red":opcua_update_red, "green":opcua_update_green,
 
 def run(my_mqtt_config_yaml):
     try:
-        thread_opcua = threading.Thread(target=run_opcua)
-        thread_opcua.start()
+#        thread_opcua = threading.Thread(target=run_opcua)
+#        thread_opcua.start()
         mqtt = Mqtt(my_mqtt_config_yaml)
         lamp_status_before = ""
         status_changed = False
