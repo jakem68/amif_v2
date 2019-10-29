@@ -3,6 +3,8 @@ services:
   influxdb:
     image: influxdb:latest
     container_name: influxdb
+    stdin_open: true
+    tty: true
     volumes:
       - c:\docker\tig_stack\influxdb:/var/lib/influxdb
     ports:
@@ -55,6 +57,8 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     user: "1000"
+    stdin_open: true
+    tty: true
     volumes:
       - c:\docker\tig_stack\grafana\data:/var/lib/grafana
     environment:

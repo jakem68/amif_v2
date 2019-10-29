@@ -1,7 +1,6 @@
 server: "demo.thingsboard.io" # can also be 127.0.0.1
 port: 1883 # standard mqtt port is 1883
 topic: "v1/devices/me/telemetry" # is a standard value in ThingsBoard for all topics, username is actually the device where the data is sent to.
-username: "z9K5nYUEEL4eipA0XXh6"
+username: "1tc39iXpvOv9JJDIRprU"
 password: ""
-time_interval: 3 # int in seconds
-sensor_snr: "RXMVOLT1-11507B" # sensor snr for klima1 (= Fehlmann room)
+time_interval: 1 # int in seconds

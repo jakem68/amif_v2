@@ -4,16 +4,18 @@ __author__ = 'Jan Kempeneers'
 
 import socket, sys, queue, threading
 
+msg_in_str = ""
 
 def main():
     run()
 
 def run():
+    global msg_in_str
     HOST = ''  # Symbolic name meaning all available interfaces
     PORT = 30432  # Arbitrary non-privileged port
     q = queue.Queue()
-    thread_sock = threading.Thread(target=create_socket_connection, args=(HOST, PORT, q))
-    thread_sock.start()
+    thread_sock_server = threading.Thread(target=create_socket_connection, args=(HOST, PORT, q))
+    thread_sock_server.start()
 
     while True:
         conn = q.get()
@@ -27,7 +29,6 @@ def run():
                 answer_in_bytes = ("Message arrived: {}".format(msg_in_str)).encode('utf-8')
                 conn.sendall(answer_in_bytes)
         conn.close()
-
 
 
 def create_socket_connection(host, port, q):

@@ -13,10 +13,10 @@ GPIO.setmode(GPIO.BCM)
 message = {"id":2, "timestamp":"", "payload": ""}
 
 sensors = {
-    "sensor1": {"color": "white","pin": 3,"value": False,"status": "off","changes": 0,},
+#    "sensor1": {"color": "white","pin": 3,"value": False,"status": "off","changes": 0,},
     "sensor2": {"color": "red","pin": 4,"value": False,"status": "off","changes": 0,},
     "sensor3": {"color": "yellow","pin": 17,"value": False,"status": "off","changes": 0,},
-    "sensor4": {"color": "blue","pin": 22,"value": False,"status": "off","changes": 0,},
+#    "sensor4": {"color": "blue","pin": 22,"value": False,"status": "off","changes": 0,},
     "sensor5": {"color": "green","pin": 27,"value": False,"status": "off","changes": 0,},
     }
 
@@ -155,8 +155,8 @@ switcher = {"red":opcua_update_red, "green":opcua_update_green,
 
 def run(my_mqtt_config_yaml):
     try:
-#        thread_opcua = threading.Thread(target=run_opcua)
-#        thread_opcua.start()
+        thread_opcua = threading.Thread(target=run_opcua)
+        thread_opcua.start()
         mqtt = Mqtt(my_mqtt_config_yaml)
         lamp_status_before = ""
         status_changed = False
@@ -190,4 +190,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

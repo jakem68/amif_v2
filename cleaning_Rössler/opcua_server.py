@@ -17,8 +17,8 @@ idx = server.register_namespace(uri)
 objects = server.get_objects_node()
 
 # populating our address space
-myobj = objects.add_object(idx, "AMIF_lasea_slm")
-myvar = myobj.add_variable(idx, "lasea_stack_light_status", 6.7)
+myobj = objects.add_object(idx, "AMIF_cleaning_slm")
+myvar = myobj.add_variable(idx, "cleaning_stack_light_status", 6.7)
 myvar.set_writable()    # Set MyVariable to be writable by clients
 # q.put(myvar)
 

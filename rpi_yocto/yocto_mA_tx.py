@@ -21,8 +21,14 @@ def die(msg):
 def initialize(target="any"):
     errmsg = YRefParam()
     # Setup the API to use local USB devices
-    if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
-        sys.exit("init error" + errmsg.value)
+#    if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
+#        sys.exit("init error" + errmsg.value)
+
+    # setup to use Virtualhub instead of native usb to work with multiple devices
+    if YAPI.RegisterHub("127.0.0.1", errmsg) != YAPI.SUCCESS:
+        print("no succes, trying via usb native")
+        if (YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS):
+            print(errmsg)
 
     if target == 'any':
         # retreive any currentLoopOutput
@@ -34,8 +40,9 @@ def initialize(target="any"):
 
     # we need to retreive the second loop from the device
     if not loop.isOnline(): die('device not connected')
+    return loop
 
-def set_current(value):
+def set_current(value, loop):
     loop.set_current(value)
 
     loopPower = loop.get_loopPower()
@@ -45,8 +52,8 @@ def set_current(value):
     elif loopPower == YCurrentLoopOutput.LOOPPOWER_NOPWR:
         print("Insufficient voltage on current loop")
     else:
-        sys.exit("current loop set to " + str(value) + " mA")
-    YAPI.FreeAPI()
+        print("current loop set to " + str(value) + " mA")
+#    YAPI.FreeAPI()
 
 
 def main():
@@ -55,6 +62,8 @@ def main():
 
     target = sys.argv[1]
     value = float(sys.argv[2])
+    loop = initialize(target)
+    set_current(value, loop)
 
 if __name__ == "__main__":
     main()

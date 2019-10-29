@@ -49,9 +49,12 @@ def get_millivolts():
 def initialize(target="any"):
     global channel1
     errmsg = YRefParam()
-    # Setup the API to use local USB devices
-    if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
-        sys.exit("init error" + errmsg.value)
+
+    # setup to use Virtualhub instead of native usb to work with multiple devices
+    if YAPI.RegisterHub("127.0.0.1", errmsg) != YAPI.SUCCESS:
+        print("no succes, trying via usb native")
+        if (YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS):
+            print(errmsg)
 
     if target == 'any':
         # retreive any genericSensor sensor
@@ -72,11 +75,15 @@ def initialize(target="any"):
     channel1 = YGenericSensor.FindGenericSensor(serial + '.genericSensor1')
 
 def main():
-    target = sys.argv[1]
+    try:
+        target = sys.argv[1]
+    except:
+        target = "any"
+        pass
     if len(sys.argv) < 2:
         usage()
-    initialize()
-    print(get_millivolts())
+    initialize(target)
+    get_millivolts()
     measure_continuously()
 
 if __name__ == "__main__":
