@@ -75,6 +75,9 @@ class Mqtt:
         self.client.on_disconnect = self.on_disconnect
         self.client_initialize()
 
+    def disconnect(self):
+        self.client.disconnect()
+
 # sending some values for when testing
 def run():
     mqtt1 = Mqtt("my_mqtt_module.yml")

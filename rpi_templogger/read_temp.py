@@ -88,14 +88,19 @@ def temp_is_valid(temp, last_ten_temps, max_delta_temp_per_interval):
         result = True
     return result
 
+def reconnect_mqtt(mqtt):
+    mqtt.disconnect()
+    mqtt.start()
+
 def run(my_mqtt_config_yaml):
     mqtt = Mqtt(my_mqtt_config_yaml)
-    mqtt.start()
     time_interval = mqtt.get_time_interval()
-    max_delta_temp_per_sec = 5
+    max_delta_temp_per_sec = 0.1
     max_delta_temp_per_interval = time_interval*max_delta_temp_per_sec
-
+    mqtt_reconnect_counter = 0
     while True:
+        if mqtt_reconnect_counter == 10:
+            reconnect_mqtt(mqtt)
         for sensor in sensors.values():
             # check for stable reading by comparing two readings
             temp = get_temp_reading(sensor)
@@ -122,7 +127,7 @@ def run(my_mqtt_config_yaml):
             msg.update({key : value})
         msg_out = json.dumps(msg)
         mqtt.publish(msg_out = msg_out)
-
+        mqtt_reconnect_counter += 1
         time.sleep(time_interval)
 
 
