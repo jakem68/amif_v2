@@ -39,7 +39,8 @@ def run(tb_demo_yaml, mosquitto_yaml):
         time.sleep(0.25)
         millivolt = yocto_mV_rx.get_millivolts()
         ohm = round(millivolt/milliamp, 2)
-        msg = {"milliVolt":millivolt, "milliamp":milliamp, "ohm":ohm}
+        temperature = (ohm*5.3739)-972
+        msg = {"milliVolt":millivolt, "milliamp":milliamp, "ohm":ohm, "temperature":temperature}
         msg_out = json.dumps(msg)
         mqtt_tb_demo.publish(msg_out = msg_out)
         mqtt_mosquitto.publish(msg_out = msg_out)

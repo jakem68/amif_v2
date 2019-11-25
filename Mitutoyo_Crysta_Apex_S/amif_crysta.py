@@ -32,6 +32,7 @@ def run():
         if mqtt_msg:
             print("mqtt message is {}".format(mqtt_msg))
             mqtt_dict = json.loads(mqtt_msg)
+            # analyzing {"command":"run", "part_UID":"1234"}
             if status_crysta == "ready" and \
                "command" in mqtt_dict.keys() and mqtt_dict["command"] == "run" and \
                "part_UID" in mqtt_dict.keys() and mqtt_dict["part_UID"] != "":
