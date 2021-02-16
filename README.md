@@ -8,3 +8,5 @@
 
 ## Connected devices
 * The other folders contain scripts residing on the different devices sending data to the thingsboard server.
+
+test
